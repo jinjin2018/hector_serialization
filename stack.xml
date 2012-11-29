@@ -1,0 +1,9 @@
+<stack>
+  <description brief="hector_serialization">hector_serialization</description>
+  <author>Maintained by Johannes Meyer</author>
+  <license>BSD</license>  
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/hector_serialization</url>
+  <depend stack="ros" />
+
+</stack>

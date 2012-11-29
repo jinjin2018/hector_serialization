@@ -1,0 +1,2 @@
+rosbuild_add_library(hector_serialization_xbee xbee.cpp)
+rosbuild_link_boost(hector_serialization_xbee system)

@@ -1,0 +1,17 @@
+<package>
+  <description brief="hector_serialization_core">
+
+     hector_serialization_core
+
+  </description>
+  <author>Johannes Meyer</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/hector_serialization_core</url>
+
+  <depend package="roscpp_serialization"/>
+
+  <export>
+    <cpp cflags="-I${prefix}/include" lflags="-L${prefix}/lib -Wl,-rpath,${prefix}/lib -lhector_serialization"/>
+  </export>
+</package>

@@ -1,0 +1,17 @@
+<package>
+  <description brief="hector_serialization_test">
+
+     hector_serialization_test
+
+  </description>
+  <author>Johannes Meyer</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/hector_serialization_test</url>
+
+  <depend package="hector_serialization_core" />
+  <depend package="roscpp" />
+  <depend package="rosgraph_msgs" />
+  <depend package="rosserial_msgs" />
+
+</package>
