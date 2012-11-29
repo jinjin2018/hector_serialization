@@ -159,7 +159,7 @@ namespace hector_serialization {
 //    for( ; it != readers_.end(); ++it) (*it)->handle(this, context);
 //  }
 
-  void ChannelElement::handle(const ConstBuffer& buffer, const Context& context)
+  void ChannelElement::handle(const ConstBuffers1& buffer, const Context& context)
   {
     std::list<ReadHandler*>::const_iterator it = readers_.begin();
     for( ; it != readers_.end(); ++it) (*it)->handle(buffer, context);

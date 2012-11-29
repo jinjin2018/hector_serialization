@@ -83,7 +83,7 @@ public:
     filtered_callbacks_.push_back(std::make_pair<ReceiveHeader,ReceiveCallback>(header, callback));
   }
 
-  void addCallback(const StatusCallback& callback)
+  void addStatusCallback(const StatusCallback& callback)
   {
     status_callbacks_.push_back(callback);
   }

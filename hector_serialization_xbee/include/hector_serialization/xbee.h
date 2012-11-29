@@ -52,7 +52,7 @@ struct ProtocolInfo<XBee> {
     bool is16Bit() const { return !bit64_; }
     bool is64Bit() const { return bit64_; }
 
-    std::string toString() const { return boost::lexical_cast<std::string>(address); }
+    std::string identifier() const { return boost::lexical_cast<std::string>(address); }
 
     bool isEqual(const Address& other) const {
       return this->bit64_ == other.bit64_ && this->address == other.address;
@@ -93,7 +93,7 @@ struct ProtocolInfo<XBee> {
     ReceiveHeader& setSourceAddress(const Address& source_address) { this->source_address = source_address; return *this; }
     ReceiveHeader& setOptions(uint8_t options) { this->options = options; return *this; }
 
-    bool isEuqal(const ReceiveHeader& other) const {
+    bool isEqual(const ReceiveHeader& other) const {
       return this->source_address == other.source_address;
     }
 
@@ -109,6 +109,8 @@ struct ProtocolInfo<XBee> {
     operator void*() { return reinterpret_cast<void*>(status == SUCCESS); }
     operator uint8_t&() { return status; }
   };
+
+  typedef Context::Element<Address> ContextElement;
 };
 
 class XBee : public Protocol_<XBee>, public BufferedChannelElement {
@@ -120,7 +122,7 @@ public:
 
   struct Checksum {
     Checksum(const ConstBuffer& buffer);
-    Checksum(BufferIterator begin, BufferIterator end);
+    Checksum(boost::asio::buffers_iterator<BufferSequence> begin, boost::asio::buffers_iterator<BufferSequence> end);
     Checksum(uint8_t checksum) : checksum_(checksum) {}
     const uint8_t& checksum() const { return checksum_; }
     operator uint8_t&() { return checksum_; }
@@ -171,7 +173,7 @@ protected:
   bool write(const BufferSequence &sequence);
   // void handle(ChannelElement* channel);
   void handle(StreamBuf *stream, const Context &context = Context());
-  void handleAPI(const ConstBuffer& buffer, const Context& context = Context());
+  void handleAPI(const ConstBuffers1& buffer, const Context& context = Context());
 
   Status status_;
 

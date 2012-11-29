@@ -51,14 +51,14 @@ public:
   MessageInstance(const ConstBuffer &message, const TopicInfo &topic_info);
   ~MessageInstance();
 
-  MessageInstance &operator=(const ConstBuffer &message);
+  MessageInstance &operator=(const ConstBuffers1 &message);
 
   std::string const& getTopic()             const;
   std::string const& getDataType()          const;
   std::string const& getMD5Sum()            const;
   std::string const& getMessageDefinition() const;
 
-  ConstBuffer const& getMessage() const;
+  ConstBuffers1 const& getMessage() const;
 
   void morph(const std::string& md5sum, const std::string& datatype, const std::string& msg_def,
              const std::string& latching);
@@ -90,10 +90,10 @@ public:
   //! Pointer to the data of ther serialized message
   const uint8_t *data() const;
 
-  void copy(const ConstBuffer &source);
+  void copy(const ConstBuffers1 &source);
 
 private:
-  ConstBuffer message_;
+  ConstBuffers1 message_;
   TopicInfo topic_info_;
   std::string message_definition_, latching_;
 
@@ -126,7 +126,7 @@ void MessageInstance::read(Stream& stream)
 {
   stream.getLength();
   stream.getData();
-  copy(ConstBuffer(stream.getData(), stream.getLength()));
+  copy(ConstBuffers1(stream.getData(), stream.getLength()));
 }
 
 } // namespace rosserial

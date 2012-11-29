@@ -145,7 +145,7 @@ void XBee::handle(StreamBuf *in, const Context &context)
   if (stream.getLength() >= 4 && packet[0] == 0x7e) {
     uint16_t length = packet[1] << 8 | packet[2];
     if (stream.getLength() >= uint32_t(length + 4)) {
-      ConstBuffer payload(&packet[3], length);
+      ConstBuffers1 payload(&packet[3], length);
       if (Checksum(payload) == packet[3 + length]) {
         handleAPI(payload, context);
         stream.advance(length + 4);
@@ -155,18 +155,20 @@ void XBee::handle(StreamBuf *in, const Context &context)
   in->consume(stream.getSize());
 }
 
-void XBee::handleAPI(const ConstBuffer& buffer, const Context& context)
+void XBee::handleAPI(const ConstBuffers1& buffer, const Context& context)
 {
   const uint8_t *api = buffer_cast<const uint8_t*>(buffer);
 
   switch(api[0]) {
     case 0x80:
     case 0x81:
-      if (api[0] == 0x80) receive_header_.source_address.set16Bit(); else receive_header_.source_address.set64Bit();
-      payload_ = buffer + 1 + deserialize(buffer + 1, receive_header_);
-      ChannelElement::handle(payload_, context + receive_header_);
-      receiveCallback(payload_, receive_header_);
-      break;
+      {
+        if (api[0] == 0x80) receive_header_.source_address.set16Bit(); else receive_header_.source_address.set64Bit();
+        ConstBuffers1 payload_(buffer + 1 + deserialize(buffer + 1, receive_header_));
+        ChannelElement::handle(payload_, context + receive_header_);
+        receiveCallback(payload_, receive_header_);
+        break;
+      }
 
     case 0x88:
       {
@@ -186,7 +188,7 @@ void XBee::handleAPI(const ConstBuffer& buffer, const Context& context)
   }
 }
 
-XBee::Checksum::Checksum(BufferIterator begin, BufferIterator end)
+XBee::Checksum::Checksum(boost::asio::buffers_iterator<BufferSequence> begin, boost::asio::buffers_iterator<BufferSequence> end)
 {
   calculate_checksum(begin, end);
 }

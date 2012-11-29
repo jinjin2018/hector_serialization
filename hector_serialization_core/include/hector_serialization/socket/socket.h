@@ -264,7 +264,7 @@ void DatagramSocket<SocketT>::Worker::doRead()
   owner_->read_mutex_.lock();
 
   try {
-    socket_.async_receive_from(MutableBuffer(read_buffer_.data(), read_buffer_.size()), owner_->remote_context_.endpoint(), boost::bind(&Worker::readEnd, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+    socket_.async_receive_from(MutableBuffers1(read_buffer_.data(), read_buffer_.size()), owner_->remote_context_.endpoint(), boost::bind(&Worker::readEnd, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
     return;
   } catch(std::runtime_error& e) {
 #ifndef NDEBUG
@@ -293,7 +293,7 @@ void DatagramSocket<SocketT>::Worker::readEnd(const boost::system::error_code& e
 //    owner_->read_mutex_.unlock();
 
     // owner_->trigger(Context(owner_->remote_context_));
-    owner_->handle(ConstBuffer(read_buffer_.data(), bytes_transfered), Context(owner_->remote_context_));
+    owner_->handle(ConstBuffers1(read_buffer_.data(), bytes_transfered), Context(owner_->remote_context_));
     owner_->read_condition_.notify_all();
   }
 

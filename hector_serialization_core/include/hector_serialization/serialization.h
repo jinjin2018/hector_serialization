@@ -137,17 +137,6 @@ namespace hector_serialization {
   }
 
   /**
-   * \brief Deserialize an object from a channel.
-   */
-  template<typename T>
-  inline bool deserialize(ChannelElement& channel, T& t)
-  {
-    std::size_t n = deserialize(channel.data(), t);
-    channel.consume(n);
-    return n;
-  }
-
-  /**
    * \brief Determine the serialized length of an object. Default serialization simply forwards to ros::serialization.
    */
   template<typename T>

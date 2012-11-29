@@ -44,11 +44,11 @@ public:
     return &in_;
   }
 
-  virtual void handle(const ConstBuffer &buffer, const Context &context)
+  virtual void handle(const ConstBuffers1 &buffer, const Context &context)
   {
     boost::mutex::scoped_lock lock(mutex_);
     boost::asio::const_buffers_1 source(buffer);
-    MutableBuffer temp = in_.prepare(buffer_size(buffer));
+    MutableBuffers1 temp = in_.prepare(buffer_size(buffer));
     std::copy(buffers_begin(source), buffers_end(source), buffers_begin(temp));
     in_.commit(buffer_size(buffer));
     handle(&in_, context);

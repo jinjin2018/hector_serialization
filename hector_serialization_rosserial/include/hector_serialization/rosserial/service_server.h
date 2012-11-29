@@ -51,7 +51,7 @@ public:
   void advertise();
 
   bool callback(MessageInstance& request, MessageInstance& response);
-  void handleResponse(const ConstBuffer& response);
+  void handleResponse(const ConstBuffers1& response);
 
 private:
   ros::NodeHandle node_handle_;

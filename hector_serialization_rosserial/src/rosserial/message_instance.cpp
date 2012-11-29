@@ -73,7 +73,7 @@ MessageInstance::~MessageInstance()
   if (buffer_) delete[] buffer_;
 }
 
-MessageInstance &MessageInstance::operator=(const ConstBuffer &message)
+MessageInstance &MessageInstance::operator=(const ConstBuffers1 &message)
 {
   this->message_ = message;
   return *this;
@@ -84,7 +84,7 @@ std::string const& MessageInstance::getDataType()            const { return topi
 std::string const& MessageInstance::getMD5Sum()              const { return topic_info_.md5sum;   }
 std::string const& MessageInstance::getMessageDefinition()   const { return message_definition_; }
 
-ConstBuffer const& MessageInstance::getMessage() const { return message_; }
+ConstBuffers1 const& MessageInstance::getMessage() const { return message_; }
 
 void MessageInstance::morph(const std::string& md5sum, const std::string& datatype, const std::string& msg_def,
            const std::string& latching)
@@ -103,7 +103,7 @@ const uint8_t *MessageInstance::data() const {
   return buffer_cast<const uint8_t *>(message_);
 }
 
-void MessageInstance::copy(const ConstBuffer &source)
+void MessageInstance::copy(const ConstBuffers1 &source)
 {
   std::size_t size = buffer_size(source);
 
@@ -114,7 +114,7 @@ void MessageInstance::copy(const ConstBuffer &source)
   }
 
   memcpy(buffer_, buffer_cast<const void *>(source), size);
-  message_ = ConstBuffer(buffer_, size);
+  message_ = ConstBuffers1(buffer_, size);
 }
 
 } // namespace rosserial

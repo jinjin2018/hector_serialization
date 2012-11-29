@@ -28,7 +28,7 @@
 
 #include <hector_serialization/device/serial_port.h>
 #include <hector_serialization/device/file.h>
-#include <hector_serialization/protocol/xbee.h>
+#include <hector_serialization/xbee.h>
 #include <hector_serialization/serialization.h>
 
 #include <rosgraph_msgs/Clock.h>
@@ -76,8 +76,9 @@ int main(int argc, char **argv)
   xbee.addOutput(&file);
   if (!xbee.configure()) return 2;
 
-  xbee.addCallback(XBee::StatusCallback(&statusCallback));
-  xbee.header(XBee::broadcast()).write(serialize(clock));
+  xbee.addStatusCallback(XBee::StatusCallback(&statusCallback));
+  xbee.header(XBee::broadcast());
+  xbee.write(serialize(clock));
 
   pause();
 

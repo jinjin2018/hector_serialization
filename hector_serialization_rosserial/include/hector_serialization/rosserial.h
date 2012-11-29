@@ -114,7 +114,7 @@ public:
 
   // virtual bool write(const BufferSequence &sequence, const Context& context = Context()) { return false; }
   virtual bool wait(const boost::posix_time::time_duration& timeout) { return false; }
-  virtual void handle(const ConstBuffer& buffer, const Context &context);
+  virtual void handle(const ConstBuffers1& buffer, const Context &context);
 
   PublisherPtr advertise(const TopicInfo& topic_info, const PeerPtr &peer, uint32_t queue_size = 1);
   SubscriberPtr subscribe(const TopicInfo& topic_info, const PeerPtr &peer, uint32_t queue_size = 1);

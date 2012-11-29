@@ -89,7 +89,7 @@ bool ServiceServer::callback(MessageInstance &request, MessageInstance &response
   return true;
 }
 
-void ServiceServer::handleResponse(const ConstBuffer& response)
+void ServiceServer::handleResponse(const ConstBuffers1& response)
 {
   boost::mutex::scoped_try_lock request_lock(request_mutex_);
   if (request_lock.owns_lock()) {

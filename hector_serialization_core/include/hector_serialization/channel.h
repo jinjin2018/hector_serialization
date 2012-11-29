@@ -44,7 +44,7 @@ namespace hector_serialization {
   class ReadHandler {
   public:
     // virtual void handle(ChannelElement* channel, const Context& context = Context()) = 0;
-    virtual void handle(const ConstBuffer& buffer, const Context& context = Context()) = 0;
+    virtual void handle(const ConstBuffers1& buffer, const Context& context = Context()) = 0;
   };
 
   class WriteHandler {
@@ -71,8 +71,8 @@ namespace hector_serialization {
     virtual void cleanup() { if (next_) next_->cleanup(); }
 
     /* write data to the channel */
-    bool write(const ConstBuffer& buffer, const Context& context = Context()) { return write(BufferSequence(1, buffer), context); }
-    bool write(const void *data, std::size_t size, const Context& context = Context()) { return write(ConstBuffer(data, size), context); }
+    bool write(const ConstBuffers1& buffer, const Context& context = Context()) { return write(BufferSequence(1, buffer), context); }
+    bool write(const void *data, std::size_t size, const Context& context = Context()) { return write(ConstBuffers1(data, size), context); }
     virtual bool write(const BufferSequence &sequence, const Context& context = Context());
 
     /* read data from to the channel */
@@ -100,7 +100,7 @@ namespace hector_serialization {
   protected:
 //    virtual void handle(ChannelElement* channel, const Context& context = Context());
 //    virtual void trigger(const Context& context = Context());
-    virtual void handle(const ConstBuffer& buffer, const Context& context = Context());
+    virtual void handle(const ConstBuffers1& buffer, const Context& context = Context());
 
   private:
     ChannelElement* next_;

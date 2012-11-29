@@ -46,9 +46,9 @@ public:
   const Context& getContext() const { return context_; }
   bool connected() const { return connected_; }
 
-  void handle(const ConstBuffer &buffer, const Context &context);
-  bool write(const ConstBuffer &message, const TopicInfo &topic_info);
-  bool write(const ConstBuffer &message, uint16_t topic_id);
+  void handle(const ConstBuffers1 &buffer, const Context &context);
+  bool write(const ConstBuffers1 &message, const TopicInfo &topic_info);
+  bool write(const ConstBuffers1 &message, uint16_t topic_id);
 
   // server functions
   void requestTopics();
@@ -60,12 +60,12 @@ public:
   ros::Time now() const { return ros::Time::now() + getTimeOffset(); }
 
 private:
-  void receiveCallback(const ConstBuffer& buffer, RosSerial::Protocol::ReceiveHeader const &header, const Context &context);
-  void handleTimeRequest(const ConstBuffer &payload);
-  void handleTimeResponse(const ConstBuffer &payload);
-  void handleLog(const ConstBuffer &payload);
-  bool handleParameterRequest(const ConstBuffer &payload);
-  bool handleMessage(const ConstBuffer &message, uint16_t topic_id);
+  void receiveCallback(const ConstBuffers1& buffer, RosSerial::Protocol::ReceiveHeader const &header, const Context &context);
+  void handleTimeRequest(const ConstBuffers1 &payload);
+  void handleTimeResponse(const ConstBuffers1 &payload);
+  void handleLog(const ConstBuffers1 &payload);
+  bool handleParameterRequest(const ConstBuffers1 &payload);
+  bool handleMessage(const ConstBuffers1 &message, uint16_t topic_id);
 
   uint16_t generateTopicId();
   std::string& remapName(std::string& name);

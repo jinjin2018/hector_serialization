@@ -90,7 +90,7 @@ void RosSerial::stop()
   is_running_ = false;
 }
 
-void RosSerial::handle(const ConstBuffer& buffer, const Context &context)
+void RosSerial::handle(const ConstBuffers1& buffer, const Context &context)
 {
   PeerPtr peer;
   {

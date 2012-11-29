@@ -51,7 +51,7 @@ private:
     Worker(AsyncDevice<StreamT> *owner, StreamT& stream);
     ~Worker();
 
-    void write(const MutableBuffer &buffer);
+    void write(const MutableBuffers1 &buffer);
     void cancel();
 
   private:
@@ -186,7 +186,7 @@ bool AsyncDevice<StreamT>::write(const BufferSequence &buffers, const Context& c
   std::size_t size = end - begin;
 
   try {
-    MutableBuffer out_buffer = out_.prepare(size);
+    MutableBuffers1 out_buffer = out_.prepare(size);
     std::copy(begin, end, buffers_begin(out_buffer));
     out_.commit(size);
     worker_->write(out_buffer);
@@ -213,7 +213,7 @@ template <typename StreamT>
 void AsyncDevice<StreamT>::Worker::doRead()
 {
   try {
-    stream_.async_read_some(MutableBuffer(read_buffer_.data(), read_buffer_.size()), boost::bind(&Worker::readEnd, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+    stream_.async_read_some(MutableBuffers1(read_buffer_.data(), read_buffer_.size()), boost::bind(&Worker::readEnd, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
     return;
   } catch(...) {
   }
@@ -235,7 +235,7 @@ void AsyncDevice<StreamT>::Worker::readEnd(const boost::system::error_code& erro
 //    owner_->read_mutex_.unlock();
 
 //    owner_->trigger();
-    owner_->handle(ConstBuffer(read_buffer_.data(), bytes_transfered));
+    owner_->handle(ConstBuffers1(read_buffer_.data(), bytes_transfered));
     owner_->read_condition_.notify_all();
   }
 
@@ -244,7 +244,7 @@ void AsyncDevice<StreamT>::Worker::readEnd(const boost::system::error_code& erro
 }
 
 template <typename StreamT>
-void AsyncDevice<StreamT>::Worker::write(const MutableBuffer &buffer)
+void AsyncDevice<StreamT>::Worker::write(const MutableBuffers1 &buffer)
 {
 //  boost::mutex::scoped_lock lock(owner_->write_mutex_);
 //  if (owner_->out_.size() == 0) return;

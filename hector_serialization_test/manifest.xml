@@ -10,6 +10,7 @@
   <url>http://ros.org/wiki/hector_serialization_test</url>
 
   <depend package="hector_serialization_core" />
+  <depend package="hector_serialization_xbee" />
   <depend package="roscpp" />
   <depend package="rosgraph_msgs" />
   <depend package="rosserial_msgs" />

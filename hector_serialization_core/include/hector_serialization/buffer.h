@@ -37,8 +37,10 @@
 
 namespace hector_serialization {
 
-  typedef boost::asio::const_buffers_1 ConstBuffer;
-  typedef boost::asio::mutable_buffers_1 MutableBuffer;
+  typedef boost::asio::const_buffer ConstBuffer;
+  typedef boost::asio::const_buffers_1 ConstBuffers1;
+  typedef boost::asio::mutable_buffer MutableBuffer;
+  typedef boost::asio::mutable_buffers_1 MutableBuffers1;
   typedef std::list<boost::asio::const_buffer> BufferSequence;
 
   typedef boost::asio::streambuf StreamBuf;
@@ -62,26 +64,26 @@ namespace hector_serialization {
     };
 
     template <typename T>
-    class SharedBuffer_ : public SharedBufferHelper_<T>, public MutableBuffer
+    class SharedBuffer_ : public SharedBufferHelper_<T>, public MutableBuffers1
     {
     public:
       template <typename Arg1>
       SharedBuffer_(const Arg1& arg)
         : SharedBufferHelper_<T>(arg)
-        , MutableBuffer(this->buffer_->data(), this->buffer_->size())
+        , MutableBuffers1(this->buffer_->data(), this->buffer_->size())
       {}
 
-      operator ConstBuffer() { return ConstBuffer(this->buffer_->data(), this->buffer_->size()); }
+      operator ConstBuffers1() { return ConstBuffers1(this->buffer_->data(), this->buffer_->size()); }
     };
 
     template <typename T>
-    class SharedConstBuffer_ : public SharedBufferHelper_<T>, public ConstBuffer
+    class SharedConstBuffer_ : public SharedBufferHelper_<T>, public ConstBuffers1
     {
     public:
       template <typename Arg1>
       SharedConstBuffer_(const Arg1& arg)
         : SharedBufferHelper_<T>(arg)
-        , ConstBuffer(this->buffer_->data(), this->buffer_->size())
+        , ConstBuffers1(this->buffer_->data(), this->buffer_->size())
       {}
     };
   }
@@ -98,10 +100,10 @@ namespace hector_serialization {
     return source_it - boost::asio::buffers_begin<ConstBufferSequence>(source);
   }
 
-  class EmptyBuffer : public ConstBuffer
+  class EmptyBuffer : public ConstBuffers1
   {
   public:
-    EmptyBuffer() : ConstBuffer(0, 0) {}
+    EmptyBuffer() : ConstBuffers1(0, 0) {}
   };
 
   static inline BufferSequence operator+(const BufferSequence& sequence1, const BufferSequence& sequence2) {
@@ -111,14 +113,14 @@ namespace hector_serialization {
     return result;
   }
 
-  static inline BufferSequence operator+(const BufferSequence& sequence1, const ConstBuffer& buffer2) {
+  static inline BufferSequence operator+(const BufferSequence& sequence1, const ConstBuffers1& buffer2) {
     BufferSequence result;
     result.insert(result.end(), sequence1.begin(), sequence1.end());
     result.push_back(buffer2);
     return result;
   }
 
-  static inline BufferSequence operator+(const ConstBuffer& buffer1, const ConstBuffer& buffer2) {
+  static inline BufferSequence operator+(const ConstBuffers1& buffer1, const ConstBuffers1& buffer2) {
     BufferSequence result(2);
     result.push_back(buffer1);
     result.push_back(buffer2);
@@ -130,14 +132,14 @@ namespace hector_serialization {
 namespace ros { namespace serialization {
 
 template<typename Stream>
-void serialize(Stream& stream, const hector_serialization::ConstBuffer& buffer)
+void serialize(Stream& stream, const hector_serialization::ConstBuffers1& buffer)
 {
   std::size_t n = hector_serialization::buffer_size(buffer);
   memcpy(stream.advance(n), hector_serialization::buffer_cast<const void*>(buffer), n);
 }
 
 template<typename Stream>
-void deserialize(Stream& stream, const hector_serialization::MutableBuffer& buffer)
+void deserialize(Stream& stream, const hector_serialization::MutableBuffers1& buffer)
 {
   std::size_t n = std::min(std::size_t(stream.getLength()), hector_serialization::buffer_size(buffer));
   memcpy(hector_serialization::buffer_cast<const void*>(buffer), stream.advance(n), n);
