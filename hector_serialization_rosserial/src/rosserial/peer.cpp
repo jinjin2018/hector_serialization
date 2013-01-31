@@ -76,7 +76,7 @@ void Peer::stop()
   remote_subscribers_.clear();
 }
 
-void Peer::handle(const ConstBuffers1 &buffer, const Context &context)
+void Peer::handle(const ConstBuffer &buffer, const Context &context)
 {
   in_.commit(copy(buffer, in_.prepare(buffer_size(buffer))));
   RosSerial::Protocol::ReceiveHeader header;
@@ -84,23 +84,28 @@ void Peer::handle(const ConstBuffers1 &buffer, const Context &context)
   for(std::size_t size = in_.size(); size > 0; in_.consume(1), size = in_.size()) {
     uint8_t const *data = boost::asio::buffer_cast<uint8_t const *>(in_.data());
     if (data[0] != 0xFF) { in_.consume(1); continue; }
-    if (size < 7u) break;
+    if (size < 6u) break;
     if (data[1] != 0xFF) { in_.consume(1); continue; }
     header.topic_id = data[2] | (data[3] << 8);
     header.length = data[4] | (data[5] << 8);
-    if (size < 7u + header.length) break;
-    uint8_t checksum = 0;
-    for(uint8_t const *temp = &data[2]; temp < &data[6u + header.length]; ++temp) checksum += *temp;
-    if (255 - checksum == data[6u + header.length]) {
-      receiveCallback(ConstBuffers1(data + 6, header.length), header, context);
-    } else {
-      ROS_ERROR("rosserial: Checksum error on peer %s (%02x != %02x)", getName().c_str(), 255 - checksum, data[6 + header.length]);
+    if (size <= 6u + header.length) {         // no checksum in message
+      receiveCallback(ConstBuffer(data + 6, header.length), header, context);
+      in_.consume(5u + header.length); // +1 from for loop
+    } else if (size <= 8u + header.length) { // there is a checksum
+      uint8_t checksum = 0;
+      for(uint8_t const *temp = &data[2]; temp < &data[6u + header.length]; ++temp) checksum += *temp;
+      if (255 - checksum == data[6u + header.length]) {
+        receiveCallback(ConstBuffer(data + 6, header.length), header, context);
+        ROS_WARN("rosserial: message without checksum from peer %s", getName().c_str());
+      } else {
+        ROS_ERROR("rosserial: Checksum error on peer %s (%02x != %02x)", getName().c_str(), 255 - checksum, data[6 + header.length]);
+      }
+      in_.consume(7u + header.length);
     }
-    in_.consume(6u + header.length); // +1 from for loop
   }
 }
 
-void Peer::receiveCallback(const ConstBuffers1& payload, RosSerial::Protocol::ReceiveHeader const &header, const Context &context)
+void Peer::receiveCallback(const ConstBuffer& payload, RosSerial::Protocol::ReceiveHeader const &header, const Context &context)
 {
   TopicInfo topic_info;
 
@@ -203,8 +208,8 @@ bool Peer::synchronizeTime(bool wait)
   std_msgs::Time now;
   now.data = ros::Time::now();
   uint8_t message[serializationLength(now)];
-  serialize(MutableBuffers1(message, sizeof(message)), now);
-  write(ConstBuffers1(message, sizeof(message)), TopicInfo::ID_TIME);
+  serialize(MutableBuffer(message, sizeof(message)), now);
+  write(ConstBuffer(message, sizeof(message)), TopicInfo::ID_TIME);
   this->last_sync_time_ = now.data;
 
   if (!wait) {
@@ -216,7 +221,7 @@ bool Peer::synchronizeTime(bool wait)
   return !last_sync_time_.isZero();
 }
 
-void Peer::handleLog(const ConstBuffers1 &payload)
+void Peer::handleLog(const ConstBuffer &payload)
 {
   rosserial_msgs::Log log;
   try {
@@ -235,20 +240,20 @@ void Peer::handleLog(const ConstBuffers1 &payload)
   }
 }
 
-void Peer::handleTimeRequest(const ConstBuffers1 &payload)
+void Peer::handleTimeRequest(const ConstBuffer &payload)
 {
   // send answer with current timestamp
   std_msgs::Time now;
   now.data = ros::Time::now();
   uint8_t message[serializationLength(now)];
-  serialize(MutableBuffers1(message, sizeof(message)), now);
-  write(ConstBuffers1(message, sizeof(message)), TopicInfo::ID_TIME);
+  serialize(MutableBuffer(message, sizeof(message)), now);
+  write(ConstBuffer(message, sizeof(message)), TopicInfo::ID_TIME);
 
   last_sync_time_ = now.data;
   retry_counter_ = 0;
 }
 
-void Peer::handleTimeResponse(const ConstBuffers1 &payload)
+void Peer::handleTimeResponse(const ConstBuffer &payload)
 {
   if (last_sync_time_.isZero()) {
     ROS_WARN("Received time response from peer %s without having sent a request", getName().c_str());
@@ -276,7 +281,7 @@ void Peer::handleTimeResponse(const ConstBuffers1 &payload)
   time_synchronize_mutex_.unlock();
 }
 
-bool Peer::handleParameterRequest(const ConstBuffers1 &payload)
+bool Peer::handleParameterRequest(const ConstBuffer &payload)
 {
   rosserial_msgs::RequestParamRequest req;
   try {
@@ -326,7 +331,7 @@ bool Peer::handleParameterRequest(const ConstBuffers1 &payload)
   return write(serialize(resp), TopicInfo::ID_PARAMETER_REQUEST);
 }
 
-bool Peer::handleMessage(const ConstBuffers1 &message, uint16_t topic_id)
+bool Peer::handleMessage(const ConstBuffer &message, uint16_t topic_id)
 {
   if (remote_publishers_.count(topic_id) > 0) {
     remote_publishers_[topic_id]->publish(message);
@@ -400,12 +405,12 @@ std::string& Peer::remapName(std::string& name)
   return name;
 }
 
-bool Peer::write(const ConstBuffers1 &message, const TopicInfo& topic_info)
+bool Peer::write(const ConstBuffer &message, const TopicInfo& topic_info)
 {
   return write(message, topic_info.topic_id);
 }
 
-bool Peer::write(const ConstBuffers1 &message, uint16_t topic_id)
+bool Peer::write(const ConstBuffer &message, uint16_t topic_id)
 {
   boost::array<uint8_t,6> header;
   uint16_t length = buffer_size(message);
@@ -418,9 +423,9 @@ bool Peer::write(const ConstBuffers1 &message, uint16_t topic_id)
   header[5] = (length >> 8) & 0xFF;
 
   uint8_t checksum = 255 - header[2] - header[3] - header[4] - header[5];
-  for(buffers_iterator<ConstBuffers1> it = buffers_begin(message); it != buffers_end(message); ++it) checksum -= *it;
+  for(buffers_iterator<ConstBuffer> it = buffers_begin(message); it != buffers_end(message); ++it) checksum -= *it;
 
-  return owner_->write(ConstBuffers1(header.data(), header.size()) + message + ConstBuffers1(&checksum, 1), context_);
+  return owner_->write(ConstBuffer(header.data(), header.size()) + message + ConstBuffer(&checksum, 1), context_);
 }
 
 } // namespace rosserial
